@@ -85,7 +85,8 @@ func New(url, dir string, width, height int, customArgs ...string) (UI, error) {
 	}
 
 	go func() {
-		chrome.cmd.Wait()
+		err2 := chrome.cmd.Wait()
+		WriteFile("error.txt", "Wait错误:"+err2.Error())
 		close(done)
 	}()
 	return &ui{chrome: chrome, done: done, tmpDir: tmpDir}, nil
@@ -173,4 +174,15 @@ func (u *ui) SetBounds(b Bounds) error {
 
 func (u *ui) Bounds() (Bounds, error) {
 	return u.chrome.bounds()
+}
+
+func WriteFile(fileName, content string) bool {
+	fd, _ := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	buf := []byte(content)
+	_, err := fd.Write(buf)
+	fd.Close()
+	if err == nil {
+		return true
+	}
+	return false
 }
